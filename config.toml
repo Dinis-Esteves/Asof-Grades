@@ -11,8 +11,5 @@ best_fraction = 0.7
 # How to round best_fraction * total_quizzes (0.7 * 25 = 17.5): "ceil" -> 18, "floor" -> 17, "round" -> 18
 rounding = "ceil"
 
-# Maximum score of a single quiz (used for the percentage column).
-max_score = 20
-
 # A student absent from a published quiz PDF scores this.
 missing_score = 0

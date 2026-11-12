@@ -37,24 +37,25 @@ td.miss {{ color:var(--muted); }}
 <main>
 <h1>ASof quiz grades</h1>
 <div class="meta">{n} of {total} quizzes published · best {k} count · grade = {rule} · updated {updated}</div>
-<input id="q" type="search" placeholder="Filter by name or number" autocomplete="off">
+<input id="q" type="search" placeholder="Filter by student number" autocomplete="off">
 <div class="wrap"><table id="t"><thead></thead><tbody></tbody></table></div>
 </main>
 <script>
 const D = {data};
-const head = ["Number", "Name", "Grade", "%", ...D.quizzes.map((q, i) => "Q" + (i + 1))];
+const head = ["Number", "Current", "Final", ...D.quizzes.map((q, i) => "Q" + (i + 1))];
+const Q0 = 3; // first quiz column
 const thead = document.querySelector("#t thead"), tbody = document.querySelector("#t tbody");
-let sortCol = 2, asc = false;
-thead.innerHTML = "<tr>" + head.map((h, i) => `<th class="${{i < 2 ? "l" : ""}}" title="${{i > 3 ? D.quizzes[i - 4] : ""}}">${{h}}</th>`).join("") + "</tr>";
-thead.querySelectorAll("th").forEach((th, i) => th.onclick = () => {{ asc = sortCol === i ? !asc : i < 2; sortCol = i; render(); }});
-const key = (s, i) => i === 0 ? s.id : i === 1 ? s.name : i === 2 || i === 3 ? s.grade : (s.scores[i - 4] ?? -1);
+let sortCol = 1, asc = false;
+thead.innerHTML = "<tr>" + head.map((h, i) => `<th class="${{i === 0 ? "l" : ""}}" title="${{i >= Q0 ? D.quizzes[i - Q0] : i === 2 ? "Final grade if every remaining quiz scores 0" : ""}}">${{h}}</th>`).join("") + "</tr>";
+thead.querySelectorAll("th").forEach((th, i) => th.onclick = () => {{ asc = sortCol === i ? !asc : i === 0; sortCol = i; render(); }});
+const key = (s, i) => i === 0 ? s.id : i === 1 ? s.grade : i === 2 ? s.guaranteed : (s.scores[i - Q0] ?? -1);
 const fmt = x => x == null ? "–" : (+x.toFixed(2)).toString();
 function render() {{
   const q = document.getElementById("q").value.trim().toLowerCase();
-  const rows = D.students.filter(s => !q || s.id.includes(q) || s.name.toLowerCase().includes(q))
+  const rows = D.students.filter(s => !q || s.id.includes(q))
     .sort((a, b) => {{ const x = key(a, sortCol), y = key(b, sortCol); return (x < y ? -1 : x > y ? 1 : 0) * (asc ? 1 : -1); }});
   tbody.innerHTML = rows.map(s => "<tr>" +
-    `<td class="l">${{s.id}}</td><td class="l">${{s.name}}</td><td class="grade">${{fmt(s.grade)}}</td><td>${{fmt(s.grade / D.max * 100)}}</td>` +
+    `<td class="l">${{s.id}}</td><td class="grade">${{fmt(s.grade)}}</td><td>${{fmt(s.guaranteed)}}</td>` +
     s.scores.map((v, i) => `<td class="${{s.dropped.includes(i) ? "drop" : v == null ? "miss" : ""}}">${{fmt(v)}}</td>`).join("") +
     "</tr>").join("");
 }}
@@ -66,13 +67,12 @@ render();
 """
 
 
-def write_site(out_dir: Path, quizzes: list[str], students: list[dict], total: int, k: int, max_score: float) -> Path:
+def write_site(out_dir: Path, quizzes: list[str], students: list[dict], total: int, k: int) -> Path:
     n = len(quizzes)
     rule = f"mean of all {n}" if n <= k else f"mean of best {k}"
     data = {
         "quizzes": [html.escape(q) for q in quizzes],
-        "students": [{**s, "name": html.escape(s["name"])} for s in students],
-        "max": max_score,
+        "students": students,
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     page = TEMPLATE.format(

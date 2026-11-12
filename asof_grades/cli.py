@@ -8,7 +8,7 @@ import tomllib
 from pathlib import Path
 
 from .build import write_site
-from .compute import Student, counted_quizzes, grade_student
+from .compute import Student, counted_quizzes, grade_student, guaranteed_grade
 from .fetch import download, list_quiz_pdfs, load_cookie, session_with_cookie
 from .parse import parse_pdf
 
@@ -57,10 +57,17 @@ def main() -> None:
     missing = cfg.get("missing_score", 0)
     out = []
     for s in students.values():
-        s.grade, s.dropped = grade_student([missing if v is None else v for v in s.scores], k)
-        out.append({"id": s.student_id, "name": s.name, "grade": s.grade, "dropped": s.dropped, "scores": s.scores})
+        filled = [missing if v is None else v for v in s.scores]
+        s.grade, s.dropped = grade_student(filled, k)
+        out.append({
+            "id": s.student_id,
+            "grade": s.grade,
+            "guaranteed": guaranteed_grade(filled, k),
+            "dropped": s.dropped,
+            "scores": s.scores,
+        })
 
-    path = write_site(ROOT / "docs", quizzes, out, cfg["total_quizzes"], k, cfg["max_score"])
+    path = write_site(ROOT / "docs", quizzes, out, cfg["total_quizzes"], k)
     print(f"Wrote {path.relative_to(ROOT)} ({len(out)} students, {len(quizzes)} quizzes, best {k} count).")
 
 
