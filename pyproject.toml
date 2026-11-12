@@ -1,0 +1,17 @@
+[project]
+name = "asof-grades"
+version = "0.1.0"
+description = "Aggregate ASof quiz grades from Fénix PDFs into a static site"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32",
+    "beautifulsoup4>=4.12",
+    "pdfplumber>=0.11",
+]
+
+[project.scripts]
+asof-grades = "asof_grades.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
