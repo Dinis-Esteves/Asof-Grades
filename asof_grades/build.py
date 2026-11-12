@@ -22,8 +22,8 @@ main {{ max-width:1100px; margin:0 auto; padding:24px 16px 48px; }}
 h1 {{ margin:0 0 4px; font-size:1.5rem; }}
 .meta {{ color:var(--muted); margin-bottom:16px; }}
 input {{ width:100%; max-width:360px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; margin-bottom:12px; }}
-.wrap {{ overflow-x:auto; border:1px solid var(--line); border-radius:8px; }}
-table {{ border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }}
+.wrap {{ display:inline-block; max-width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:8px; }}
+table {{ border-collapse:collapse; font-variant-numeric:tabular-nums; }}
 th, td {{ padding:6px 10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }}
 th {{ position:sticky; top:0; background:var(--bg); cursor:pointer; user-select:none; font-weight:600; }}
 th.l, td.l {{ text-align:left; }}
@@ -36,7 +36,7 @@ td.miss {{ color:var(--muted); }}
 <body>
 <main>
 <h1>ASof quiz grades</h1>
-<div class="meta">{n} of {total} quizzes published · best {k} count · grade = {rule} · updated {updated}</div>
+<div class="meta">{n} of {total} quizzes published · best {k} count · updated {updated}</div>
 <input id="q" type="search" placeholder="Filter by student number" autocomplete="off">
 <div class="wrap"><table id="t"><thead></thead><tbody></tbody></table></div>
 </main>
@@ -69,14 +69,13 @@ render();
 
 def write_site(out_dir: Path, quizzes: list[str], students: list[dict], total: int, k: int) -> Path:
     n = len(quizzes)
-    rule = f"mean of all {n}" if n <= k else f"mean of best {k}"
     data = {
         "quizzes": [html.escape(q) for q in quizzes],
         "students": students,
     }
     out_dir.mkdir(parents=True, exist_ok=True)
     page = TEMPLATE.format(
-        n=n, total=total, k=k, rule=rule,
+        n=n, total=total, k=k,
         updated=datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M UTC"),
         data=json.dumps(data, ensure_ascii=False).replace("</", "<\\/"),
     )
