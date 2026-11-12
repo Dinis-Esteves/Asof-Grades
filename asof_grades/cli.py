@@ -9,7 +9,7 @@ from pathlib import Path
 
 from .build import write_site
 from .compute import Student, counted_quizzes, grade_student, guaranteed_grade
-from .fetch import download, list_quiz_pdfs, load_cookie, session_with_cookie
+from .fetch import download, list_quiz_pdfs, load_cookie, read_env, session_with_cookie, session_with_login
 from .parse import parse_pdf
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -31,7 +31,12 @@ def main() -> None:
     if args.offline:
         pdfs = [(p.stem, p) for p in sorted(pdf_dir.glob("*.pdf"), key=_natural)]
     else:
-        session = session_with_cookie(load_cookie(ROOT / ".env"))
+        env = ROOT / ".env"
+        user, pw = read_env(env, "FENIX_USERNAME"), read_env(env, "FENIX_PASSWORD")
+        if user and pw:
+            session = session_with_login(user, pw, cfg["grades_url"])
+        else:
+            session = session_with_cookie(load_cookie(env))
         links = list_quiz_pdfs(session, cfg["grades_url"])
         print(f"Found {len(links)} PDF link(s) on Fénix.")
         pdfs = [(link.title, path) for link, path in download(session, links, pdf_dir)]

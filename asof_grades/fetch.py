@@ -31,12 +31,49 @@ def load_cookie(env_file: Path) -> str:
                 cookie = value.strip().strip('"').strip("'")
                 break
     if not cookie and os.environ.get("CI"):
-        raise SystemExit("FENIX_COOKIE secret is not set.")
+        raise SystemExit("Set FENIX_USERNAME and FENIX_PASSWORD secrets (or FENIX_COOKIE).")
     if not cookie:
         cookie = getpass.getpass("Fénix Cookie header (hidden): ").strip()
     if not cookie:
         raise SystemExit("No Fénix cookie provided.")
     return cookie
+
+
+def read_env(env_file: Path, key: str) -> str | None:
+    """Value of `key` from the environment, else from .env."""
+    if value := os.environ.get(key):
+        return value
+    if env_file.exists():
+        for line in env_file.read_text().splitlines():
+            k, _, v = line.partition("=")
+            if k.strip() == key:
+                return v.strip().strip('"').strip("'") or None
+    return None
+
+
+def session_with_login(username: str, password: str, page_url: str) -> requests.Session:
+    """Log in through IST CAS (id.tecnico.ulisboa.pt) and return a session holding Fénix cookies."""
+    s = requests.Session()
+    s.headers["User-Agent"] = USER_AGENT
+    login_url = f"https://fenix.tecnico.ulisboa.pt/login?callback={page_url}"
+    resp = s.get(login_url, timeout=30)
+    resp.raise_for_status()
+
+    form = BeautifulSoup(resp.text, "html.parser").find("form", id="credential")
+    if form is None:
+        raise SystemExit(f"CAS login form not found at {urlparse(resp.url).netloc}.")
+    data = {i["name"]: i.get("value", "") for i in form.find_all("input") if i.get("name")}
+    data.update(username=username, password=password)
+
+    resp = s.post(urljoin(resp.url, form["action"]), data=data, timeout=30)
+    resp.raise_for_status()
+    host = urlparse(resp.url).netloc
+    if host != "fenix.tecnico.ulisboa.pt":
+        err = BeautifulSoup(resp.text, "html.parser").select_one(".error-message, #msg, .errors, .alert")
+        reason = " ".join(err.get_text(" ", strip=True).split()) if err else "no error message"
+        raise SystemExit(f"Fénix login failed (stopped at {host}): {reason}")
+    print("Logged in to Fénix.")
+    return s
 
 
 def session_with_cookie(cookie: str) -> requests.Session:
@@ -48,12 +85,13 @@ def session_with_cookie(cookie: str) -> requests.Session:
 def list_quiz_pdfs(session: requests.Session, page_url: str) -> list[QuizLink]:
     resp = session.get(page_url, timeout=30)
     redirected_to_login = "/login" in urlparse(resp.url).path
-    names = sorted({c.split("=", 1)[0].strip() for c in session.headers["Cookie"].split(";") if "=" in c})
+    header = session.headers.get("Cookie", "")
+    names = sorted({c.split("=", 1)[0].strip() for c in header.split(";") if "=" in c} | set(session.cookies.keys()))
     print(f"Fénix: HTTP {resp.status_code}, final path {urlparse(resp.url).path}, cookie names sent {names}")
     if resp.status_code == 401 or redirected_to_login:
         raise SystemExit(
             "Fénix rejected the cookie (expired, incomplete, or bound to another IP). "
-            "Refresh FENIX_COOKIE."
+            "Refresh FENIX_COOKIE or set FENIX_USERNAME/FENIX_PASSWORD."
         )
     resp.raise_for_status()
 

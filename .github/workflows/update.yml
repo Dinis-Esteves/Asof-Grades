@@ -33,7 +33,9 @@ jobs:
 
       - name: Fetch PDFs and build site
         env:
-          FENIX_COOKIE: ${{ secrets.FENIX_COOKIE }}
+          FENIX_USERNAME: ${{ secrets.FENIX_USERNAME }}
+          FENIX_PASSWORD: ${{ secrets.FENIX_PASSWORD }}
+          FENIX_COOKIE: ${{ secrets.FENIX_COOKIE }}  # fallback when username/password are unset
         run: uv run asof-grades
 
       - uses: actions/configure-pages@v5

@@ -16,18 +16,18 @@ Fetches every quiz PDF from the Fénix grades page, merges them, and builds a st
 
 Setup:
 
-1. Settings → Secrets and variables → Actions → New repository secret: `FENIX_COOKIE` = your Fénix Cookie header.
+1. Settings → Secrets and variables → Actions → New repository secrets: `FENIX_USERNAME` (Técnico ID, e.g. `ist1xxxxxx`) and `FENIX_PASSWORD`. Each run logs in through id.tecnico.ulisboa.pt. `FENIX_COOKIE` still works as a fallback when these are unset.
 2. Settings → Pages → Source: **GitHub Actions**.
 3. Actions → Update grades → Run workflow.
 
-When the Fénix session expires the run fails with "Fénix rejected the cookie" and GitHub emails you. Update the secret and re-run.
+A failed login stops the run with the reason from the login page and GitHub emails you.
 
 ## Local usage
 
 ```sh
-cp .env.example .env   # paste your Fénix Cookie header; .env is gitignored
+cp .env.example .env   # fill in username/password (or cookie); .env is gitignored
 uv run asof-grades     # downloads new PDFs to data/pdfs/, writes docs/index.html
 uv run asof-grades --offline   # rebuild from PDFs already downloaded
 ```
 
-No `.env`? The script prompts for the cookie with hidden input.
+No credentials? The script prompts for the cookie with hidden input.
