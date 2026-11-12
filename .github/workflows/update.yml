@@ -2,7 +2,7 @@ name: Update grades
 
 on:
   schedule:
-    - cron: "0 17 * * 2-5"  # Tue–Fri 17:00 UTC (= Lisbon time in winter); GitHub may delay scheduled runs
+    - cron: "0 15 * * 2-5"  # Tue–Fri 15:00 UTC (= Lisbon time in winter); GitHub may delay scheduled runs
   workflow_dispatch:        # manual "Run workflow" button
   push:
     branches: [main]

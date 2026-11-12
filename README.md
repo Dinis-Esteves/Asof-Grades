@@ -12,7 +12,7 @@ Fetches every quiz PDF from the Fénix grades page, merges them, and builds a st
 
 ## Automatic updates (GitHub Actions)
 
-`.github/workflows/update.yml` runs Tue–Fri at 17:00 (Lisbon), on push to `main`, and on demand. It downloads new PDFs, builds the site and deploys it to GitHub Pages. Grades are never committed to the repo; they only exist in the deployed site.
+`.github/workflows/update.yml` runs Tue–Fri at 15:00 (Lisbon), on push to `main`, and on demand. It downloads new PDFs, builds the site and deploys it to GitHub Pages. Grades are never committed to the repo; they only exist in the deployed site.
 
 Setup:
 
