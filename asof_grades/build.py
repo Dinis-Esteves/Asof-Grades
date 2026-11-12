@@ -23,14 +23,14 @@ h1 {{ margin:0 0 4px; font-size:1.5rem; }}
 .meta {{ color:var(--muted); margin-bottom:16px; }}
 .hint {{ color:var(--muted); font-size:.85rem; margin:0 0 8px; }}
 input {{ width:100%; max-width:360px; padding:8px 10px; border:1px solid var(--line); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; margin-bottom:12px; }}
-.wrap {{ display:inline-block; max-width:100%; overflow-x:auto; border:1px solid var(--line); border-radius:8px; }}
-table {{ border-collapse:collapse; font-variant-numeric:tabular-nums; }}
-th, td {{ padding:6px 10px; border-bottom:1px solid var(--line); text-align:right; white-space:nowrap; }}
+.wrap {{ overflow-x:auto; border:1px solid var(--line); border-radius:8px; }}
+table {{ border-collapse:collapse; width:100%; font-variant-numeric:tabular-nums; }}
+th, td {{ padding:6px 10px; border-bottom:1px solid var(--line); text-align:center; white-space:nowrap; }}
 th {{ position:sticky; top:0; background:var(--bg); cursor:pointer; user-select:none; font-weight:600; }}
 th:hover {{ color:var(--accent); }}
 th .arrow {{ display:inline-block; width:1em; margin-left:4px; color:var(--muted); opacity:.45; }}
 th[aria-sort] .arrow {{ color:var(--accent); opacity:1; }}
-th.l, td.l {{ text-align:left; }}
+th.l, td.l {{ text-align:left; width:1%; padding-right:24px; }}
 tbody tr:nth-child(even) {{ background:var(--row); }}
 td.grade {{ font-weight:700; color:var(--accent); }}
 td.drop {{ color:var(--drop); text-decoration:line-through; }}
