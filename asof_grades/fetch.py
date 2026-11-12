@@ -47,8 +47,14 @@ def session_with_cookie(cookie: str) -> requests.Session:
 
 def list_quiz_pdfs(session: requests.Session, page_url: str) -> list[QuizLink]:
     resp = session.get(page_url, timeout=30)
-    if resp.status_code == 401 or "/login?callback=" in resp.text:
-        raise SystemExit("Fénix rejected the cookie (expired?). Refresh FENIX_COOKIE in .env.")
+    redirected_to_login = "/login" in urlparse(resp.url).path
+    names = sorted({c.split("=", 1)[0].strip() for c in session.headers["Cookie"].split(";") if "=" in c})
+    print(f"Fénix: HTTP {resp.status_code}, final path {urlparse(resp.url).path}, cookie names sent {names}")
+    if resp.status_code == 401 or redirected_to_login:
+        raise SystemExit(
+            "Fénix rejected the cookie (expired, incomplete, or bound to another IP). "
+            "Refresh FENIX_COOKIE."
+        )
     resp.raise_for_status()
 
     soup = BeautifulSoup(resp.text, "html.parser")
